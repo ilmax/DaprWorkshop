@@ -9,6 +9,27 @@ services:
     networks:
       - globoticket
 
+  catalog-dapr:
+    container_name: "catalog-sidecar"
+    image: "daprio/daprd:1.11.3"
+    command:
+      [
+        "./daprd",
+        "-app-id",
+        "catalog",
+        "-app-port",
+        "80",
+        "-components-path",
+        "/components",
+        "-config",
+        "/components/config.yaml"
+      ]
+    volumes:
+      - "./components/docker-compose/:/components"
+    depends_on:
+      - catalog
+    network_mode: "service:catalog"
+
   frontend:
     image: ${DOCKER_REGISTRY-}frontend
     build:
@@ -16,6 +37,27 @@ services:
       dockerfile: frontend/Dockerfile
     networks:
       - globoticket
+
+  frontend-dapr:
+    container_name: "frontend-sidecar"
+    image: "daprio/daprd:1.11.3"
+    command:
+      [
+        "./daprd",
+        "-app-id",
+        "frontend",
+        "-app-port",
+        "80",
+        "-components-path",
+        "/components",
+        "-config",
+        "/components/config.yaml"
+      ]
+    volumes:
+      - "./components/docker-compose/:/components"
+    depends_on:
+      - frontend
+    network_mode: "service:frontend"
 
   ordering:
     image: ${DOCKER_REGISTRY-}ordering
@@ -25,5 +67,44 @@ services:
     networks:
       - globoticket
 
+  ordering-dapr:
+    container_name: "ordering-sidecar"
+    image: "daprio/daprd:1.11.3"
+    command:
+      [
+        "./daprd",
+        "-app-id",
+        "ordering",
+        "-app-port",
+        "80",
+        "-components-path",
+        "/components",
+        "-config",
+        "/components/config.yaml"
+      ]
+    volumes:
+      - "./components/docker-compose/:/components"
+    depends_on:
+      - ordering
+    network_mode: "service:ordering"
+
+  redis:
+    container_name: "redis"
+    image: "redis:7.2-alpine"
+    ports:
+      - "6379"
+    networks:
+      - globoticket
+    volumes:            #Add this line
+      - "./data:/data"   #Add this line      
+
+  zipkin:
+    container_name: "zipkin"
+    image: "openzipkin/zipkin:2.24"
+    ports:
+      - 9412:9411
+    networks:
+      - globoticket 
+
 networks:
-    globoticket:
+  globoticket:

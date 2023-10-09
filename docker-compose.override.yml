@@ -25,3 +25,12 @@ services:
       - ASPNETCORE_ENVIRONMENT=Development
     ports:
       - "5004:80"
+
+  maildev:
+    container_name: "smtpserver"
+    image: "maildev/maildev:2.1.0" # https://hub.docker.com/r/maildev/maildev
+    ports:
+      - "1025:1025"
+      - "1080:1080"
+    networks:
+      - globoticket           

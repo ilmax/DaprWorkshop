@@ -2,22 +2,17 @@ using GloboTicket.Frontend.Services;
 using GloboTicket.Frontend.Models;
 using GloboTicket.Frontend.Services.Ordering;
 using GloboTicket.Frontend.Services.ShoppingBasket;
+using Dapr.Client;
 
 var builder = WebApplication.CreateBuilder(args);
 
 // Add services to the container.
 builder.Services.AddControllersWithViews();
+builder.Services.AddDaprClient();
 
-builder.Services.AddSingleton<IShoppingBasketService, InMemoryShoppingBasketService>();
-builder.Services.AddHttpClient<IEventCatalogService, EventCatalogService>(
-    (provider, client) =>{
-        client.BaseAddress = new Uri(provider.GetService<IConfiguration>()?["ApiConfigs:EventCatalog:Uri"] ?? throw new InvalidOperationException("Missing config"));
-    });
-
-builder.Services.AddHttpClient<IOrderSubmissionService, HttpOrderSubmissionService>(
-    (provider, client) => {
-        client.BaseAddress = new Uri(provider.GetService<IConfiguration>()?["ApiConfigs:Ordering:Uri"] ?? throw new InvalidOperationException("Missing config"));
-    });
+builder.Services.AddSingleton<IShoppingBasketService, DaprClientStateStoreShoppingBasket>();
+builder.Services.AddSingleton<IEventCatalogService>(new EventCatalogService(DaprClient.CreateInvokeHttpClient("catalog")));
+builder.Services.AddTransient<IOrderSubmissionService, PubSubOrderSubmissionService>();
 
 builder.Services.AddSingleton<Settings>();
 builder.Services.AddApplicationInsightsTelemetry();

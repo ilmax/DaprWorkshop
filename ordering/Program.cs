@@ -11,6 +11,7 @@ builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
 builder.Services.AddTransient<EmailSender>();
 builder.Services.AddApplicationInsightsTelemetry();
+builder.Services.AddDaprClient();
 
 var app = builder.Build();
 
@@ -21,8 +22,11 @@ if (app.Environment.IsDevelopment())
     app.UseSwaggerUI();
 }
 
+app.UseCloudEvents();
 app.UseRouting();
 app.UseAuthorization();
 app.MapControllers();
+app.MapSubscribeHandler();
+
 
 app.Run();

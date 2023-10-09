@@ -5,12 +5,12 @@ using Dapr.Client;
 
 namespace GloboTicket.Frontend.Services.Ordering;
 
-public class HttpOrderSubmissionService : IOrderSubmissionService
+public class PubSubOrderSubmissionService : IOrderSubmissionService
 {
     private readonly IShoppingBasketService shoppingBasketService;
     private readonly DaprClient orderingClient;
 
-    public HttpOrderSubmissionService(IShoppingBasketService shoppingBasketService, DaprClient orderingClient)
+    public PubSubOrderSubmissionService(IShoppingBasketService shoppingBasketService, DaprClient orderingClient)
     {
         this.shoppingBasketService = shoppingBasketService;
         this.orderingClient = orderingClient;
@@ -33,7 +33,7 @@ public class HttpOrderSubmissionService : IOrderSubmissionService
             Town = checkoutViewModel.Town,
             CreditCardExpiryDate = checkoutViewModel.CreditCardDate
         };
-        await orderingClient.InvokeMethodAsync<OrderForCreation>("ordering", "order", order);  
+        await orderingClient.PublishEventAsync("pubsub", "orders", order);
         return order.OrderId;
     }
 }
